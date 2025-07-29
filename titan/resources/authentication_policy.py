@@ -14,6 +14,7 @@ class AuthenticationMethods(ParseableEnum):
     SAML = "SAML"
     OAUTH = "OAUTH"
     KEYPAIR = "KEYPAIR"
+    PROGRAMMATIC = "PROGRAMMATIC"
 
 
 class MFAEnrollment(ParseableEnum):
@@ -26,6 +27,7 @@ class ClientTypes(ParseableEnum):
     SNOWFLAKE_UI = "SNOWFLAKE_UI"
     DRIVERS = "DRIVERS"
     SNOWSQL = "SNOWSQL"
+    PROGRAMMATIC_CLIENT = "PROGRAMMATIC_CLIENT"
 
 
 @dataclass(unsafe_hash=True)
@@ -52,8 +54,11 @@ class _AuthenticationPolicy(ResourceSpec):
                     AuthenticationMethods.ALL,
                     AuthenticationMethods.SAML,
                     AuthenticationMethods.PASSWORD,
+                    AuthenticationMethods.PROGRAMMATIC
                 ):
-                    raise ValueError("MFA authentication methods must be either 'ALL', 'SAML', or 'PASSWORD'")
+                    raise ValueError(
+                        "MFA authentication methods must be either 'ALL', 'SAML', 'PROGRAMMATIC', or 'PASSWORD'"
+                    )
             if (
                 len(self.mfa_authentication_methods) == 1
                 and self.mfa_authentication_methods[0] == AuthenticationMethods.ALL
@@ -90,12 +95,12 @@ class AuthenticationPolicy(NamedResource, Resource):
         ```python
         authentication_policy = AuthenticationPolicy(
             name="some_authentication_policy",
-            authentication_methods=["PASSWORD", "SAML"],
+            authentication_methods=["PASSWORD", "SAML", "PROGRAMMATIC"],
             mfa_authentication_methods=["PASSWORD"],
             mfa_enrollment="REQUIRED",
-            client_types=["SNOWFLAKE_UI"],
+            client_types=["SNOWFLAKE_UI", "PROGRAMMATIC_CLIENT"],
             security_integrations=["ALL"],
-            comment="Policy for secure authentication."
+            comment="Policy for secure authentication including PAT support."
         )
         ```
 
@@ -106,12 +111,13 @@ class AuthenticationPolicy(NamedResource, Resource):
           - name: some_authentication_policy
             authentication_methods:
               - PASSWORD
-              - SAML
+              - PROGRAMMATIC
             mfa_authentication_methods:
               - PASSWORD
             mfa_enrollment: REQUIRED
             client_types:
               - SNOWFLAKE_UI
+              - PROGRAMMATIC_CLIENT
             security_integrations:
               - ALL
             comment: Policy for secure authentication.
